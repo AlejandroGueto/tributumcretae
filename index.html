@@ -95,9 +95,12 @@
     <!-- Header y Temporizador -->
     <header class="w-full max-w-7xl flex justify-between items-center border-b border-sky-800 pb-4 mb-8 hidden-stage fade-in" id="gameHeader">
         <div class="text-xl md:text-2xl font-cinzel text-amber-400 tracking-widest">Tributum Cretae</div>
-        <div class="flex items-center gap-3 text-red-400 font-cinzel text-2xl font-bold bg-slate-900 px-4 py-2 rounded-md shadow-lg border border-red-900/50">
-            <i data-lucide="clock" class="w-6 h-6"></i>
-            <span id="timerDisplay">55:00</span>
+        <div class="flex flex-col items-end">
+            <div class="flex items-center gap-3 text-red-400 font-cinzel text-2xl font-bold bg-slate-900 px-4 py-2 rounded-md shadow-lg border border-red-900/50 mb-1">
+                <i data-lucide="clock" class="w-6 h-6"></i>
+                <span id="timerDisplay">55:00</span>
+            </div>
+            <button onclick="resetGame()" class="text-xs text-sky-400 hover:text-sky-200 underline font-serif tracking-wide transition-colors">Reiniciar partida</button>
         </div>
     </header>
 
@@ -119,6 +122,9 @@
             <button onclick="startGame()" class="px-8 py-4 bg-amber-600 hover:bg-amber-500 text-slate-900 font-cinzel font-bold text-xl rounded transition transform hover:scale-105 shadow-[0_0_15px_rgba(217,119,6,0.5)] w-full md:w-auto">
                 Entrar al Laberinto
             </button>
+            <div class="mt-4">
+                <button onclick="resetGame()" class="text-xs text-sky-500 hover:text-sky-300 underline">Borrar datos guardados de partidas anteriores</button>
+            </div>
         </div>
     </div>
 
@@ -318,6 +324,7 @@
         <p class="mt-4 text-amber-500 font-cinzel font-bold text-xl uppercase tracking-widest bg-amber-950/50 p-4 rounded-lg border border-amber-900">Vuestra proeza ha sido registrada en el Ágora.</p>
 
         <div class="bg-slate-900 p-6 md:p-8 rounded-lg border border-amber-500/50 mt-4 w-full max-w-xl shadow-[0_0_30px_rgba(217,119,6,0.2)] relative">
+            <button onclick="resetGame()" class="absolute top-2 right-2 text-[10px] text-sky-400 hover:text-sky-200 underline bg-slate-950 px-3 py-1 rounded-full border border-slate-800">Reiniciar</button>
             <h3 class="text-2xl font-cinzel text-amber-500 mb-4 border-b border-amber-500/30 pb-3 uppercase tracking-widest mt-4">Informe del Arconte</h3>
             
             <p class="text-sky-200 mb-6 text-lg">Tributos Supervivientes: <span id="finalTeamName" class="text-amber-400 font-bold font-cinzel text-xl ml-2"></span></p>
@@ -348,6 +355,7 @@
             El tiempo se agotó. El aterrador rugido de la bestia resuena en los pasillos de piedra. Os convertís en una estadística más en la oscura historia de Creta.
         </p>
         <p class="mt-8 text-red-500 font-cinzel font-bold text-xl uppercase tracking-widest bg-red-950/50 p-4 rounded-lg border border-red-900">Los dioses no conceden segundas oportunidades.</p>
+        <button onclick="resetGame()" class="mt-4 text-sm text-sky-400 hover:text-sky-200 underline">Reiniciar partida</button>
     </div>
 
     <!-- Oráculo (Drawer lateral) -->
@@ -387,23 +395,35 @@
             checkGameState();
         };
 
+        function resetGame() {
+            if(confirm("¿Estás seguro de que quieres reiniciar la partida actual y borrar los datos guardados?")) {
+                localStorage.removeItem('tributum_status');
+                localStorage.removeItem('tributum_team');
+                localStorage.removeItem('tributum_mistakes');
+                localStorage.removeItem('tributum_endTime');
+                localStorage.removeItem('tributum_timeStr');
+                localStorage.removeItem('tributum_score');
+                location.reload();
+            }
+        }
+
         function checkGameState() {
-            const status = localStorage.getItem('mysterium_status');
+            const status = localStorage.getItem('tributum_status');
             if (status === 'won') {
-                teamName = localStorage.getItem('mysterium_team') || "Tributo";
+                teamName = localStorage.getItem('tributum_team') || "Tributo";
                 document.getElementById('finalTeamName').innerText = teamName;
-                document.getElementById('finalTime').innerText = localStorage.getItem('mysterium_timeStr') || "00:00";
-                document.getElementById('finalMistakes').innerText = localStorage.getItem('mysterium_mistakes') || "0";
-                document.getElementById('finalScore').innerText = localStorage.getItem('mysterium_score') || "0 pts";
+                document.getElementById('finalTime').innerText = localStorage.getItem('tributum_timeStr') || "00:00";
+                document.getElementById('finalMistakes').innerText = localStorage.getItem('tributum_mistakes') || "0";
+                document.getElementById('finalScore').innerText = localStorage.getItem('tributum_score') || "0 pts";
                 hide('introStage');
                 show('victoryStage');
             } else if (status === 'lost') {
                 hide('introStage');
                 show('defeatStage');
             } else if (status === 'playing') {
-                const endTime = parseInt(localStorage.getItem('mysterium_endTime'));
-                teamName = localStorage.getItem('mysterium_team');
-                mistakes = parseInt(localStorage.getItem('mysterium_mistakes')) || 0;
+                const endTime = parseInt(localStorage.getItem('tributum_endTime'));
+                teamName = localStorage.getItem('tributum_team');
+                mistakes = parseInt(localStorage.getItem('tributum_mistakes')) || 0;
                 
                 const now = Date.now();
                 if (now >= endTime) {
@@ -600,10 +620,10 @@
             }
             teamName = nameInput;
             mistakes = 0;
-            localStorage.setItem('mysterium_status', 'playing');
-            localStorage.setItem('mysterium_team', teamName);
-            localStorage.setItem('mysterium_mistakes', '0');
-            localStorage.setItem('mysterium_endTime', (Date.now() + timeRemaining * 1000).toString());
+            localStorage.setItem('tributum_status', 'playing');
+            localStorage.setItem('tributum_team', teamName);
+            localStorage.setItem('tributum_mistakes', '0');
+            localStorage.setItem('tributum_endTime', (Date.now() + timeRemaining * 1000).toString());
             resumeGame();
         }
 
@@ -614,7 +634,7 @@
             document.getElementById('timerDisplay').innerText = formatTime(timeRemaining);
             
             timerInterval = setInterval(() => {
-                if (localStorage.getItem('mysterium_status') !== 'playing') return;
+                if (localStorage.getItem('tributum_status') !== 'playing') return;
                 timeRemaining--;
                 document.getElementById('timerDisplay').innerText = formatTime(timeRemaining);
                 if (timeRemaining <= 0) {
@@ -625,15 +645,15 @@
         }
 
         function gameOver() {
-            if (localStorage.getItem('mysterium_status') === 'won') return;
-            localStorage.setItem('mysterium_status', 'lost');
+            if (localStorage.getItem('tributum_status') === 'won') return;
+            localStorage.setItem('tributum_status', 'lost');
             if (timerInterval) clearInterval(timerInterval);
             hide('gameStage'); hide('gameHeader'); hide('introStage'); show('defeatStage');
         }
 
         function victory() {
             if (timerInterval) clearInterval(timerInterval);
-            localStorage.setItem('mysterium_status', 'won');
+            localStorage.setItem('tributum_status', 'won');
             
             const secondsUsed = (55 * 60) - timeRemaining;
             let finalScore = BASE_SCORE - secondsUsed - (mistakes * 50);
@@ -645,9 +665,9 @@
             document.getElementById('finalMistakes').innerText = mistakes;
             document.getElementById('finalScore').innerText = finalScore + " dracmas";
             
-            localStorage.setItem('mysterium_timeStr', timeStr);
-            localStorage.setItem('mysterium_mistakes', mistakes.toString());
-            localStorage.setItem('mysterium_score', finalScore + " pts");
+            localStorage.setItem('tributum_timeStr', timeStr);
+            localStorage.setItem('tributum_mistakes', mistakes.toString());
+            localStorage.setItem('tributum_score', finalScore + " pts");
 
             hide('gameStage'); hide('gameHeader'); show('victoryStage');
         }
@@ -690,7 +710,7 @@
                 document.getElementById('prueba1').classList.add('opacity-80');
             } else {
                 mistakes++;
-                localStorage.setItem('mysterium_mistakes', mistakes.toString());
+                localStorage.setItem('tributum_mistakes', mistakes.toString());
                 document.getElementById('p1-error').classList.remove('hidden');
                 const panel = document.getElementById('prueba1');
                 panel.classList.add('border-red-500');
@@ -722,7 +742,7 @@
                 document.getElementById('prueba2').classList.add('opacity-80');
             } else {
                 mistakes++;
-                localStorage.setItem('mysterium_mistakes', mistakes.toString());
+                localStorage.setItem('tributum_mistakes', mistakes.toString());
                 document.getElementById('p2-error').classList.remove('hidden');
                 const panel = document.getElementById('prueba2');
                 panel.classList.add('border-red-500');
@@ -749,7 +769,7 @@
                 victory();
             } else {
                 mistakes++;
-                localStorage.setItem('mysterium_mistakes', mistakes.toString());
+                localStorage.setItem('tributum_mistakes', mistakes.toString());
                 document.getElementById('p3-error').classList.remove('hidden');
                 const inputs = document.querySelectorAll('.candado-input');
                 inputs.forEach(i => {
